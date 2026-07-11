@@ -1,0 +1,8 @@
+body { 
+    font-family: 'DM Sans', sans-serif; 
+    background: rgb(240, 244, 248);
+}
+
+.gradient-header { 
+    background: linear-gradient(135deg, #0080B5, #57BDB5); 
+}

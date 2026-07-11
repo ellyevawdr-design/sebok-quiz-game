@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SE-BoK Quiz Game</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen">
+
+    <header class="gradient-header text-white text-center py-8 px-4">
+        <img class="w-16 h-16 mx-auto mb-3 rounded-lg" src="sebok.png" alt="SE-BoK AI Chatbot logo" loading="lazy">
+        <h1 class="font-bold text-3xl">SE-BoK Quiz Game</h1>
+        <p class="mt-2 opacity-90">Test your question skills</p>
+    </header>
+
+    <main class="max-w-lg mx-auto px-4 py-8">
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center">
+            <p class="mb-6 text-gray-700">Can you tell a good prompt from a bad one? Test your skills with 10 questions about SE-BoK AI Chatbot usage.</p>
+            <button class="px-8 py-3 rounded-lg font-bold text-lg bg-[#0080B5] text-white hover:bg-[#006894] transition" onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div id="quiz-card" class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <p id="question-counter" class="text-center text-sm text-gray-500 mb-4"></p>
+                <p id="prompt-text" class="text-center text-xl font-semibold text-gray-800 mb-6 min-h-[60px] flex items-center justify-center"></p>
+                
+                <div id="answer-buttons" class="flex justify-center gap-4 mb-4">
+                    <button onclick="answer('Good')" class="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition">✓ Good</button>
+                    <button onclick="answer('Bad')" class="flex items-center gap-2 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg transition">✗ Bad</button>
+                </div>
+
+                <div id="feedback" class="hidden mt-4 p-4 rounded-lg text-center">
+                    <p id="feedback-result" class="font-bold text-lg mb-1"></p>
+                    <p id="feedback-reason" class="text-sm text-gray-600"></p>
+                </div>
+            </div>
+            <div class="flex justify-between mt-6">
+                <button onclick="prevQuestion()" id="prev-btn" class="px-5 py-2 bg-[#003B5C] text-white rounded-lg font-medium disabled:opacity-40" disabled>← Previous</button>
+                <button onclick="nextQuestion()" id="next-btn" class="px-5 py-2 bg-[#003B5C] text-white rounded-lg font-medium hidden">Next →</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden text-center">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="font-bold mb-6 text-2xl text-[#003B5C]">Quiz Complete!</h2>
+                
+                <!-- BADGES CONTAINER IN HTML -->
+                <div id="badge-container" class="mb-6">
+                    <img id="badge-image" class="w-32 h-32 mx-auto" loading="lazy" alt="Quiz Badge">
+                </div>
+
+                <p id="score-text" class="text-4xl font-bold text-[#0080B5] mb-2"></p>
+                <p id="score-msg" class="text-gray-600 mb-6"></p>
+                <button class="px-8 py-3 rounded-lg font-bold bg-[#0080B5] text-white hover:bg-[#006894] transition" onclick="startQuiz()">Play Again</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
