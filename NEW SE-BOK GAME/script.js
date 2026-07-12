@@ -6,7 +6,7 @@ let answers = [];
 async function startQuiz() {
     try {
         // Fetch data from the local server pipeline
-        const response = await fetch('https://sebok-quiz-backend.onrender.com/api/questions');
+        const response = await fetch('https://sebok-quiz-game.onrender.com/api/questions');
         if (!response.ok) throw new Error("Network issue communicating with backend.");
         
         // Parse the incoming JSON question payload
