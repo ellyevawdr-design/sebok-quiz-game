@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
+app.use(cors());
 const PORT = 5000;
 
 // Enable cross-origin resource sharing so your HTML file can access this API
