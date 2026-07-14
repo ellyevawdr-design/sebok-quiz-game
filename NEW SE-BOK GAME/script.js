@@ -7,6 +7,51 @@ let scoreboardInterval = null; // NEW: Holds the real-time background timer inst
 
 const BACKEND_URL = 'https://sebok-quiz-game.onrender.com';
 
+// 1. NEW: Check if the user was already viewing the scoreboard on page load/refresh
+window.addEventListener('DOMContentLoaded', () => {
+    const quizState = localStorage.getItem('quiz_completed_state');
+    if (quizState === 'true') {
+        // Recover score data from local storage string parameters
+        finalScore = parseInt(localStorage.getItem('saved_final_score')) || 0;
+        
+        // Skip the start screen and jump directly to results display layout
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('results-screen').classList.remove('hidden');
+        
+        // Restore badge assets and kick off the dynamic scoreboard rendering routines
+        restoreStaticResultsUI();
+    }
+});
+
+// 2. MODIFIED: Clear out storage keys when they explicitly click "Play Again"
+async function startQuiz() {
+    try {
+        // Wipe local storage flags clean so they can take a fresh attempt
+        localStorage.removeItem('quiz_completed_state');
+        localStorage.removeItem('saved_final_score');
+
+        if (scoreboardInterval) {
+            clearInterval(scoreboardInterval);
+        }
+
+        const response = await fetch(`${BACKEND_URL}/api/questions`);
+        if (!response.ok) throw new Error("Network issue communicating with backend.");
+        
+        questions = await response.json();
+        current = 0;
+        answers = new Array(10).fill(null);
+        
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('results-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        renderQuestion();
+    } catch (error) {
+        console.error("API error: ", error);
+        alert("Could not connect to the backend server.");
+    }
+}
+
 // Fetch the shuffled questions from the Node.js API endpoint
 async function startQuiz() {
     try {
