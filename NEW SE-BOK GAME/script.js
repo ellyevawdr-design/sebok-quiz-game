@@ -1,13 +1,19 @@
+// ==========================================
+// 1. GLOBAL STATE & CONFIGURATION VARIABLES
+// ==========================================
 let questions = [];
 let current = 0;
 let answers = [];
 let finalScore = 0; // Tracks player score globally for submission
 let scoreChartInstance = null; // Tracks canvas state to prevent visual ghost charts
-let scoreboardInterval = null; // NEW: Holds the real-time background timer instance
+let scoreboardInterval = null; // Holds the real-time background timer instance
 
 const BACKEND_URL = 'https://sebok-quiz-game.onrender.com';
 
-// 1. NEW: Check if the user was already viewing the scoreboard on page load/refresh
+// ==========================================
+// 2. PAGE PERSISTENCE (REFRESH PROTECTION)
+// ==========================================
+// Checks if the user was already viewing the scoreboard on page load/refresh
 window.addEventListener('DOMContentLoaded', () => {
     const quizState = localStorage.getItem('quiz_completed_state');
     if (quizState === 'true') {
@@ -24,41 +30,21 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 2. MODIFIED: Clear out storage keys when they explicitly click "Play Again"
+// ==========================================
+// 3. CORE QUIZ & SYSTEM LOGIC ACTIONS
+// ==========================================
+// Clear out storage keys when they explicitly click "Play Again" to restart
 async function startQuiz() {
     try {
         // Wipe local storage flags clean so they can take a fresh attempt
         localStorage.removeItem('quiz_completed_state');
         localStorage.removeItem('saved_final_score');
 
-        if (scoreboardInterval) {
-            clearInterval(scoreboardInterval);
-        }
-
-        const response = await fetch(`${BACKEND_URL}/api/questions`);
-        if (!response.ok) throw new Error("Network issue communicating with backend.");
-        
-        questions = await response.json();
-        current = 0;
-        answers = new Array(10).fill(null);
-        
-        document.getElementById('start-screen').classList.add('hidden');
-        document.getElementById('results-screen').classList.add('hidden');
-        document.getElementById('quiz-screen').classList.remove('hidden');
-        renderQuestion();
-    } catch (error) {
-        console.error("API error: ", error);
-        alert("Could not connect to the backend server.");
-    }
-}
-
-// Fetch the shuffled questions from the Node.js API endpoint
-async function startQuiz() {
-    try {
         // Clear active real-time polling intervals if resetting the quiz session
         if (scoreboardInterval) {
             clearInterval(scoreboardInterval);
         }
+
         const response = await fetch(`${BACKEND_URL}/api/questions`);
         if (!response.ok) throw new Error("Network issue communicating with backend.");
         
@@ -66,7 +52,6 @@ async function startQuiz() {
         current = 0;
         answers = new Array(10).fill(null);
         
-        // Show/hide screens
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
@@ -123,13 +108,25 @@ function prevQuestion() {
     }
 }
 
+// Sets the completion flags and hands control over to the renderer
 function showResults() {
     document.getElementById('quiz-screen').classList.add('hidden');
     document.getElementById('results-screen').classList.remove('hidden');
     
     finalScore = answers.filter((a, i) => a === questions[i].answer).length;
+    
+    // Set local storage flags to survive page refreshes
+    localStorage.setItem('quiz_completed_state', 'true');
+    localStorage.setItem('saved_final_score', finalScore);
+
+    restoreStaticResultsUI();
+}
+
+// Handles drawing the badges, messages, and firing the 3-second real-time loop
+function restoreStaticResultsUI() {
     document.getElementById('score-text').textContent = `${finalScore} / 10`;
     
+    // Make submission box visible again for runs/reloads
     document.getElementById('save-score-container').classList.remove('hidden');
     document.getElementById('username-input').value = "";
     
@@ -150,48 +147,19 @@ function showResults() {
     const msgs = ['Keep practising!', 'Not bad!', 'Great job!', 'Perfect! 🎉'];
     document.getElementById('score-msg').textContent = finalScore <= 4 ? msgs[0] : finalScore <= 6 ? msgs[1] : finalScore <= 9 ? msgs[2] : msgs[3];
 
-    // 1. Load the chart initially
+    // Load the chart graphics initially
     loadLeaderboardChart();
 
-    // 2. NEW: Start real-time short polling loop. 
-    // Automatically fetches from the backend and updates Chart.js animations every 3 seconds!
+    // Start real-time short polling loop to fetch updates from other players every 3 seconds
+    if (scoreboardInterval) clearInterval(scoreboardInterval);
     scoreboardInterval = setInterval(() => {
         loadLeaderboardChart();
     }, 3000); 
 }
 
-function showResults() {
-    document.getElementById('quiz-screen').classList.add('hidden');
-    document.getElementById('results-screen').classList.remove('hidden');
-    
-    finalScore = answers.filter((a, i) => a === questions[i].answer).length;
-    document.getElementById('score-text').textContent = `${finalScore} / 10`;
-    
-    // Make submission box visible again for subsequent runs
-    document.getElementById('save-score-container').classList.remove('hidden');
-    document.getElementById('username-input').value = "";
-    
-    const badges = [
-        { range: [0, 2], src: 'DoBetter.png', alt: 'You can do better!' },
-        { range: [3, 4], src: 'DontGiveUp.png', alt: 'Don\'t give up!' },
-        { range: [5, 6], src: 'GoodTry.png', alt: 'Good Try!' },
-        { range: [7, 8], src: 'ThatGood.png', alt: 'That\'s good!' },
-        { range: [9, 10], src: 'Outstanding.png', alt: 'Outstanding!' }
-    ];
-    
-    const badge = badges.find(b => finalScore >= b.range[0] && finalScore <= b.range[1]);
-    if (badge) {
-        document.getElementById('badge-image').src = badge.src;
-        document.getElementById('badge-image').alt = badge.alt;
-    }
-    
-    const msgs = ['Keep practising!', 'Not bad!', 'Great job!', 'Perfect! 🎉'];
-    document.getElementById('score-msg').textContent = finalScore <= 4 ? msgs[0] : finalScore <= 6 ? msgs[1] : score <= 9 ? msgs[2] : msgs[3];
-
-    // Automatically load data and render the dashboard chart
-    loadLeaderboardChart();
-}
-
+// ==========================================
+// 4. SCOREBOARD API PIPELINES & CHART ENGINE
+// ==========================================
 // NEW FUNCTION 1: Submit Player Score via HTTP POST
 async function submitPlayerScore() {
     const nameInput = document.getElementById('username-input').value;
@@ -279,7 +247,7 @@ async function triggerAdminClear() {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-admin-secret': password // Passes your token to the backend gateway check
+                    'x-admin-secret': password
                 }
             });
 
@@ -291,7 +259,7 @@ async function triggerAdminClear() {
             }
 
             alert(result.message);
-            // Re-render the chart instantly (it will clear the visual bars)
+            // Re-render the empty chart instantly
             await loadLeaderboardChart();
             
         } catch (error) {
