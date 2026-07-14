@@ -180,3 +180,36 @@ async function loadLeaderboardChart() {
         console.error("Failed to compile chart graphics:", error);
     }
 }
+
+// NEW FUNCTION 3: Trigger Admin Reset Workflow via HTTP DELETE
+async function triggerAdminClear() {
+    const password = prompt("Enter Admin Passcode to clear session scores:");
+    if (!password) return;
+
+    if (confirm("Are you absolutely sure you want to completely wipe all scores for the next player group?")) {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/scoreboard/clear`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-secret': password // Passes your token to the backend gateway check
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                alert(result.error || "Reset failed.");
+                return;
+            }
+
+            alert(result.message);
+            // Re-render the chart instantly (it will clear the visual bars)
+            await loadLeaderboardChart();
+            
+        } catch (error) {
+            console.error("Admin action failed:", error);
+            alert("Error communicating with the administrative cloud server.");
+        }
+    }
+}
