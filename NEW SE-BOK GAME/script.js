@@ -3,6 +3,7 @@ let current = 0;
 let answers = [];
 let finalScore = 0; // Tracks player score globally for submission
 let scoreChartInstance = null; // Tracks canvas state to prevent visual ghost charts
+let scoreboardInterval = null; // NEW: Holds the real-time background timer instance
 
 const BACKEND_URL = 'https://sebok-quiz-game.onrender.com';
 
