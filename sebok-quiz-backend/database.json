@@ -48,3 +48,13 @@
     { "id": 46, "prompt": "If an employee wishes to resign, what notice period is required under TACOS?", "answer": "Good", "reason": "The scenario and requested information are clearly stated." }
   ]
 }
+
+{
+  "questions": [
+    { "id": 1, "prompt": "Explain this", "answer": "Bad", "reason": "The question is too vague and does not provide enough context." }
+    // ... all your other questions stay exactly the same ...
+  ],
+  "scoreboard": [
+    { "name": "System Bot", "score": 5, "date": "2026-07-14" }
+  ]
+}
