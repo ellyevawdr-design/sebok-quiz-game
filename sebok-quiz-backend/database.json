@@ -46,6 +46,10 @@
     { "id": 44, "prompt": "What topics can SE-BoK answer questions about?", "answer": "Good", "reason": "The question helps users understand the chatbot's scope and capabilities." },
     { "id": 45, "prompt": "I am submitting a procurement request. What approval process should I follow under SE-BoK?", "answer": "Good", "reason": "The question includes a clear scenario and asks for specific guidance." },
     { "id": 46, "prompt": "If an employee wishes to resign, what notice period is required under TACOS?", "answer": "Good", "reason": "The scenario and requested information are clearly stated." }
+  ],
+    "scoreboard": [
+    { "name": "System Bot", "score": 5, "date": "2026-07-14" }
   ]
+
 }
 
