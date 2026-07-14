@@ -1,27 +1,29 @@
 let questions = [];
 let current = 0;
 let answers = [];
+let finalScore = 0; // Tracks player score globally for submission
+let scoreChartInstance = null; // Tracks canvas state to prevent visual ghost charts
 
-// MODIFIED: Fetch the shuffled questions from the Node.js API endpoint
+const BACKEND_URL = 'https://sebok-quiz-game.onrender.com';
+
+// Fetch the shuffled questions from the Node.js API endpoint
 async function startQuiz() {
     try {
-        // Fetch data from the local server pipeline
-        const response = await fetch('https://sebok-quiz-game.onrender.com/api/questions');
+        const response = await fetch(`${BACKEND_URL}/api/questions`);
         if (!response.ok) throw new Error("Network issue communicating with backend.");
         
-        // Parse the incoming JSON question payload
         questions = await response.json();
-        
         current = 0;
         answers = new Array(10).fill(null);
         
+        // Show/hide screens
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         renderQuestion();
     } catch (error) {
         console.error("API error: ", error);
-        alert("Could not connect to the backend server. Make sure node server.js is running!");
+        alert("Could not connect to the backend server.");
     }
 }
 
@@ -71,15 +73,17 @@ function prevQuestion() {
     }
 }
 
-// BADGES PROCESSING LIVES INSIDE THIS FUNCTION
 function showResults() {
     document.getElementById('quiz-screen').classList.add('hidden');
     document.getElementById('results-screen').classList.remove('hidden');
     
-    const score = answers.filter((a, i) => a === questions[i].answer).length;
-    document.getElementById('score-text').textContent = `${score} / 10`;
+    finalScore = answers.filter((a, i) => a === questions[i].answer).length;
+    document.getElementById('score-text').textContent = `${finalScore} / 10`;
     
-    // REPLACE placeholder link strings below with actual web graphic links
+    // Make submission box visible again for subsequent runs
+    document.getElementById('save-score-container').classList.remove('hidden');
+    document.getElementById('username-input').value = "";
+    
     const badges = [
         { range: [0, 2], src: 'DoBetter.png', alt: 'You can do better!' },
         { range: [3, 4], src: 'DontGiveUp.png', alt: 'Don\'t give up!' },
@@ -88,12 +92,91 @@ function showResults() {
         { range: [9, 10], src: 'Outstanding.png', alt: 'Outstanding!' }
     ];
     
-    const badge = badges.find(b => score >= b.range[0] && score <= b.range[1]);
+    const badge = badges.find(b => finalScore >= b.range[0] && finalScore <= b.range[1]);
     if (badge) {
         document.getElementById('badge-image').src = badge.src;
         document.getElementById('badge-image').alt = badge.alt;
     }
     
     const msgs = ['Keep practising!', 'Not bad!', 'Great job!', 'Perfect! 🎉'];
-    document.getElementById('score-msg').textContent = score <= 4 ? msgs[0] : score <= 6 ? msgs[1] : score <= 9 ? msgs[2] : msgs[3];
+    document.getElementById('score-msg').textContent = finalScore <= 4 ? msgs[0] : finalScore <= 6 ? msgs[1] : score <= 9 ? msgs[2] : msgs[3];
+
+    // Automatically load data and render the dashboard chart
+    loadLeaderboardChart();
+}
+
+// NEW FUNCTION 1: Submit Player Score via HTTP POST
+async function submitPlayerScore() {
+    const nameInput = document.getElementById('username-input').value;
+    if (!nameInput.trim()) {
+        alert("Please input your username!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/scoreboard`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: nameInput, score: finalScore })
+        });
+
+        if (!response.ok) throw new Error("Failed to dispatch score.");
+        
+        // Hide input interface container once saved smoothly
+        document.getElementById('save-score-container').classList.add('hidden');
+        
+        // Refresh chart dynamically with updated parameters
+        await loadLeaderboardChart();
+    } catch (error) {
+        console.error("Score submission error:", error);
+        alert("Could not update the scoreboard on the cloud server.");
+    }
+}
+
+// NEW FUNCTION 2: Fetch and Render Chart.js Bar Graph
+async function loadLeaderboardChart() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/scoreboard`);
+        if (!response.ok) throw new Error("Could not pull scoreboard entries.");
+        
+        const topScores = await response.json();
+
+        // Separate labels (names) and numeric values (scores)
+        const labels = topScores.map(item => item.name);
+        const dataValues = topScores.map(item => item.score);
+
+        const ctx = document.getElementById('leaderboardChart').getContext('2d');
+
+        // Prevent layout collision artifact bugs by tearing down old instances
+        if (scoreChartInstance) {
+            scoreChartInstance.destroy();
+        }
+
+        // Draw a Kahoot-colored responsive horizontal bar chart
+        scoreChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Top Players Score',
+                    data: dataValues,
+                    backgroundColor: ['#e21b3c', '#1368ce', '#d89e00', '#26890c', '#864cbf'],
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Makes it a horizontal leaderboard chart!
+                responsive: true,
+                scales: {
+                    x: { beginAtZero: true, max: 10, ticks: { stepSize: 1 } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Failed to compile chart graphics:", error);
+    }
 }
