@@ -77,6 +77,31 @@ app.post('/api/scoreboard', (req, res) => {
     }
 });
 
+// NEW ENDPOINT 3: DELETE /api/scoreboard/clear (Admin Data Reset)
+app.delete('/api/scoreboard/clear', (req, res) => {
+    try {
+        // Simple security layer: Check for a secret admin token in the headers
+        const adminSecret = req.headers['x-admin-secret'];
+        const ACTUAL_SECRET = 'unimas_sebok_2026'; // You can change this passcode to whatever you like
+
+        if (adminSecret !== ACTUAL_SECRET) {
+            return res.status(401).json({ error: "Unauthorized access. Invalid admin credentials." });
+        }
+
+        const rawData = fs.readFileSync(dataPath, 'utf8');
+        const db = JSON.parse(rawData);
+        
+        // Wipe the scoreboard logs clean
+        db.scoreboard = [];
+
+        // Synchronize and write back to persistent cloud storage
+        fs.writeFileSync(dataPath, JSON.stringify(db, null, 2));
+        res.status(200).json({ message: "Scoreboard logs successfully cleared for the next session!" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to reset cloud scoreboard records." });
+    }
+});
+
 // Start the server instance
 app.listen(PORT, () => {
     console.log(`Backend server successfully active at http://localhost:${PORT}`);
