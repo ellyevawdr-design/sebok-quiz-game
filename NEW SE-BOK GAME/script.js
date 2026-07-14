@@ -85,6 +85,43 @@ function showResults() {
     finalScore = answers.filter((a, i) => a === questions[i].answer).length;
     document.getElementById('score-text').textContent = `${finalScore} / 10`;
     
+    document.getElementById('save-score-container').classList.remove('hidden');
+    document.getElementById('username-input').value = "";
+    
+    const badges = [
+        { range: [0, 2], src: 'DoBetter.png', alt: 'You can do better!' },
+        { range: [3, 4], src: 'DontGiveUp.png', alt: 'Don\'t give up!' },
+        { range: [5, 6], src: 'GoodTry.png', alt: 'Good Try!' },
+        { range: [7, 8], src: 'ThatGood.png', alt: 'That\'s good!' },
+        { range: [9, 10], src: 'Outstanding.png', alt: 'Outstanding!' }
+    ];
+    
+    const badge = badges.find(b => finalScore >= b.range[0] && finalScore <= b.range[1]);
+    if (badge) {
+        document.getElementById('badge-image').src = badge.src;
+        document.getElementById('badge-image').alt = badge.alt;
+    }
+    
+    const msgs = ['Keep practising!', 'Not bad!', 'Great job!', 'Perfect! 🎉'];
+    document.getElementById('score-msg').textContent = finalScore <= 4 ? msgs[0] : finalScore <= 6 ? msgs[1] : finalScore <= 9 ? msgs[2] : msgs[3];
+
+    // 1. Load the chart initially
+    loadLeaderboardChart();
+
+    // 2. NEW: Start real-time short polling loop. 
+    // Automatically fetches from the backend and updates Chart.js animations every 3 seconds!
+    scoreboardInterval = setInterval(() => {
+        loadLeaderboardChart();
+    }, 3000); 
+}
+
+function showResults() {
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('results-screen').classList.remove('hidden');
+    
+    finalScore = answers.filter((a, i) => a === questions[i].answer).length;
+    document.getElementById('score-text').textContent = `${finalScore} / 10`;
+    
     // Make submission box visible again for subsequent runs
     document.getElementById('save-score-container').classList.remove('hidden');
     document.getElementById('username-input').value = "";
