@@ -49,12 +49,3 @@
   ]
 }
 
-{
-  "questions": [
-    { "id": 1, "prompt": "Explain this", "answer": "Bad", "reason": "The question is too vague and does not provide enough context." }
-    // ... all your other questions stay exactly the same ...
-  ],
-  "scoreboard": [
-    { "name": "System Bot", "score": 5, "date": "2026-07-14" }
-  ]
-}
