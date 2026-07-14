@@ -10,6 +10,10 @@ const BACKEND_URL = 'https://sebok-quiz-game.onrender.com';
 // Fetch the shuffled questions from the Node.js API endpoint
 async function startQuiz() {
     try {
+        // Clear active real-time polling intervals if resetting the quiz session
+        if (scoreboardInterval) {
+            clearInterval(scoreboardInterval);
+        }
         const response = await fetch(`${BACKEND_URL}/api/questions`);
         if (!response.ok) throw new Error("Network issue communicating with backend.");
         
