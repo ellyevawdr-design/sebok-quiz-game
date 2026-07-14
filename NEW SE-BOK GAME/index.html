@@ -60,6 +60,17 @@
                 <p id="score-msg" class="text-gray-600 mb-6"></p>
                 <button class="px-8 py-3 rounded-lg font-bold bg-[#0080B5] text-white hover:bg-[#006894] transition" onclick="startQuiz()">Play Again</button>
             </div>
+
+                <!-- Score Submission Form -->
+                <div id="save-score-container" class="mt-4">
+                <input type="text" id="username-input" placeholder="Enter your name to join Leaderboard" class="border p-2 rounded mr-2 text-black">
+                <button onclick="submitPlayerScore()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow">Submit Score</button>
+            </div>
+
+                <!-- Visual Bar Chart Canvas -->
+                <div class="mt-6 max-w-md mx-auto">
+                <canvas id="leaderboardChart" width="400" height="250"></canvas>
+            </div>
         </div>
     </main>
 
