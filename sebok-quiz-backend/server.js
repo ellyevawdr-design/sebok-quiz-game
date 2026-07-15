@@ -82,7 +82,7 @@ app.delete('/api/scoreboard/clear', (req, res) => {
     try {
         // Simple security layer: Check for a secret admin token in the headers
         const adminSecret = req.headers['x-admin-secret'];
-        const ACTUAL_SECRET = 'unimas_sebok_2026'; // You can change this passcode to whatever you like
+        const ACTUAL_SECRET = 'unimas_sebok_2026'; // You can change this passcode to whatever you like. for now use unimas
 
         if (adminSecret !== ACTUAL_SECRET) {
             return res.status(401).json({ error: "Unauthorized access. Invalid admin credentials." });
